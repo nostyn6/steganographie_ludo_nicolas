@@ -1,4 +1,6 @@
 from PIL import Image
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
 def message_to_bin(message):
     # Convertit le message en binaire (8 bits par caractère)
@@ -26,14 +28,6 @@ def cacher_message(image_path, message, output_path):
     
     img.save(output_path)
     print(f"Message caché dans {output_path}")
-
-# Exemple d'utilisation
-cacher_message("image_originale.png", "Secret NSI 2026", "image_codee.png")
-
-
-
-
-from PIL import Image
 
 def extraire_message(image_path):
     img = Image.open(image_path)
@@ -65,9 +59,6 @@ def extraire_message(image_path):
     
     return "Aucun marqueur de fin trouvé."
 
-# Exemple d'utilisation :
-print(extraire_message("image_codee.png"))
-
 
 
 import random
@@ -90,3 +81,85 @@ def generer_points_aleatoires(largeur, hauteur, nb_bits, graine):
         points.append((x, y))
         
     return points
+
+def selectionner_image_cacher():
+    chemin = filedialog.askopenfilename(
+        title="Sélectionner une image",
+        filetypes=[("Images PNG", "*.png")]
+    )
+    entry_image_cacher.delete(0, tk.END)
+    entry_image_cacher.insert(0, chemin)
+
+def selectionner_image_extraire():
+    chemin = filedialog.askopenfilename(
+        title="Sélectionner une image",
+        filetypes=[("Images PNG", "*.png")]
+    )
+    entry_image_extraire.delete(0, tk.END)
+    entry_image_extraire.insert(0, chemin)
+
+def cacher():
+    image_source = entry_image_cacher.get()
+    message = entry_message.get()
+
+    if not image_source or not message:
+        messagebox.showerror("Erreur", "Image ou message manquant")
+        return
+
+    image_sortie = "image_codee.png"
+
+    try:
+        cacher_message(image_source, message, image_sortie)
+        messagebox.showinfo("Succès", f"Image créée : {image_sortie}")
+    except Exception as e:
+        messagebox.showerror("Erreur", str(e))
+
+def extraire():
+    image_source = entry_image_extraire.get()
+
+    if not image_source:
+        messagebox.showerror("Erreur", "Aucune image sélectionnée")
+        return
+
+    try:
+        message = extraire_message(image_source)
+
+        if message:
+            label_resultat.config(text="Message trouvé : " + message)
+        else:
+            label_resultat.config(text="Aucun message caché")
+
+    except Exception as e:
+        messagebox.showerror("Erreur", str(e))
+
+root = tk.Tk()
+root.title("Stéganographie - Cacher / Extraire")
+
+frame_cacher = tk.LabelFrame(root, text="Cacher un message", padx=10, pady=10)
+frame_cacher.pack(padx=10, pady=10, fill="x")
+
+tk.Label(frame_cacher, text="Image source :").pack()
+entry_image_cacher = tk.Entry(frame_cacher, width=50)
+entry_image_cacher.pack()
+tk.Button(frame_cacher, text="Parcourir", command=selectionner_image_cacher).pack(pady=5)
+
+tk.Label(frame_cacher, text="Message :").pack()
+entry_message = tk.Entry(frame_cacher, width=50)
+entry_message.pack()
+
+tk.Button(frame_cacher, text="Cacher le message", command=cacher).pack(pady=10)
+
+frame_extraire = tk.LabelFrame(root, text="Extraire un message", padx=10, pady=10)
+frame_extraire.pack(padx=10, pady=10, fill="x")
+
+tk.Label(frame_extraire, text="Image :").pack()
+entry_image_extraire = tk.Entry(frame_extraire, width=50)
+entry_image_extraire.pack()
+tk.Button(frame_extraire, text="Parcourir", command=selectionner_image_extraire).pack(pady=5)
+
+tk.Button(frame_extraire, text="Extraire le message", command=extraire).pack(pady=10)
+
+label_resultat = tk.Label(frame_extraire, text="")
+label_resultat.pack()
+
+root.mainloop()
