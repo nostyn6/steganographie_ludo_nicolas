@@ -22,10 +22,10 @@ def generer_points_aleatoires(largeur, hauteur, nb_bits, graine):
         
     return points
 
-def int_to_bin16(n):
+def int_to_bin16(n): # Pour traduire un entier en binaire de 16 bit
     return format(n, '016b')
 
-def bin16_to_int(b):
+def bin16_to_int(b): # Pour traduire binaire de 16 bit en un entier
     return int(b, 2)
 
 def cacher_image(image_porteur_path, image_a_cacher_path, output_path, graine):
