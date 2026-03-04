@@ -6,7 +6,7 @@ def message_to_bin(message):
     # Convertit le message en binaire (8 bits par caractère)
     return ''.join(format(ord(i), '08b') for i in message)
 
-def cacher_message(image_path, message, output_path):
+def cacher_message(image_path, message, output_path, graine):
     img = Image.open(image_path)
     binary_msg = message_to_bin(message) + '1111111111111110' # Marqueur de fin
     
@@ -14,22 +14,17 @@ def cacher_message(image_path, message, output_path):
     width, height = img.size
     
     idx = 0
-    for y in range(height):
-        for x in range(width):
-            if idx < len(binary_msg):
-                r, g, b = pixels[x, y]
-                
-                # On modifie le bit de poids faible du canal Rouge
-                # (r & ~1) met le dernier bit à 0, puis on ajoute le bit du message
-                nouveau_r = (r & ~1) | int(binary_msg[idx])
-                
-                pixels[x, y] = (nouveau_r, g, b)
-                idx += 1
+    points = generer_points_aleatoires(width, height, len(binary_msg), graine)
+
+    for idx, (x, y) in enumerate(points):
+        r, g, b = pixels[x, y]
+        nouveau_r = (r & ~1) | int(binary_msg[idx])
+        pixels[x, y] = (nouveau_r, g, b)
     
     img.save(output_path)
     print(f"Message caché dans {output_path}")
 
-def extraire_message(image_path):
+def extraire_message(image_path, graine):
     img = Image.open(image_path)
     pixels = img.load()
     width, height = img.size
@@ -38,24 +33,21 @@ def extraire_message(image_path):
     message_final = ""
     marqueur_fin = '1111111111111110'
     
-    for y in range(height):
-        for x in range(width):
-            r, g, b = pixels[x, y]
-            
-            # On récupère le bit de poids faible (LSB) avec l'opérateur ET
-            bits_extraits += str(r & 1)
-            
-            # On vérifie si on a trouvé le marqueur de fin
-            if bits_extraits.endswith(marqueur_fin):
-                # On retire le marqueur pour ne garder que les données
-                bits_utiles = bits_extraits[:-len(marqueur_fin)]
-                
-                # On regroupe par 8 bits pour reformer les caractères
-                for i in range(0, len(bits_utiles), 8):
-                    octet = bits_utiles[i:i+8]
-                    message_final += chr(int(octet, 2))
-                
-                return message_final
+    points = generer_points_aleatoires(width, height, width * height, graine)
+
+    for x, y in points:
+        r, g, b = pixels[x, y]
+        bits_extraits += str(r & 1)
+
+        if bits_extraits.endswith(marqueur_fin):
+            bits_utiles = bits_extraits[:-len(marqueur_fin)]
+            message_final = ""
+
+            for i in range(0, len(bits_utiles), 8):
+                octet = bits_utiles[i:i+8]
+                message_final += chr(int(octet, 2))
+
+            return message_final
     
     return "Aucun marqueur de fin trouvé."
 
@@ -102,28 +94,30 @@ def selectionner_image_extraire():
 def cacher():
     image_source = entry_image_cacher.get()
     message = entry_message.get()
+    graine = entry_graine.get()
 
-    if not image_source or not message:
-        messagebox.showerror("Erreur", "Image ou message manquant")
+    if not image_source or not message or not graine:
+        messagebox.showerror("Erreur", "Image, message ou graine manquant")
         return
 
     image_sortie = "image_codee.png"
 
     try:
-        cacher_message(image_source, message, image_sortie)
+        cacher_message(image_source, message, image_sortie, graine)
         messagebox.showinfo("Succès", f"Image créée : {image_sortie}")
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
 def extraire():
     image_source = entry_image_extraire.get()
+    graine = entry_graine.get()
 
-    if not image_source:
-        messagebox.showerror("Erreur", "Aucune image sélectionnée")
+    if not image_source or not graine:
+        messagebox.showerror("Erreur", "Image ou graine manquante")
         return
 
     try:
-        message = extraire_message(image_source)
+        message = extraire_message(image_source, graine)
 
         if message:
             label_resultat.config(text="Message trouvé : " + message)
@@ -159,6 +153,10 @@ entry_image_extraire.pack()
 tk.Button(frame_extraire, text="Parcourir", command=selectionner_image_extraire).pack(pady=5)
 
 tk.Button(frame_extraire, text="Extraire le message", command=extraire).pack(pady=10)
+
+tk.Label(frame_cacher, text="Graine (mot de passe) :").pack()
+entry_graine = tk.Entry(frame_cacher, width=50)
+entry_graine.pack()
 
 label_resultat = tk.Label(frame_extraire, text="")
 label_resultat.pack()
@@ -205,4 +203,4 @@ def afficher_dernier_pixel_rouge(image_difference_output):
     print("Aucun pixel rouge trouvé.")
 
 # image_difference("image2.png", "image_codee.png", "difference.png")
-afficher_dernier_pixel_rouge("difference.png")
+# afficher_dernier_pixel_rouge("difference.png")
