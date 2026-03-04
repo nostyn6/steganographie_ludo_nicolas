@@ -82,6 +82,7 @@ def generer_points_aleatoires(largeur, hauteur, nb_bits, graine):
         
     return points
 
+
 def selectionner_image_cacher():
     chemin = filedialog.askopenfilename(
         title="Sélectionner une image",
@@ -163,3 +164,45 @@ label_resultat = tk.Label(frame_extraire, text="")
 label_resultat.pack()
 
 root.mainloop()
+
+def image_difference(image1, image2, image_difference_output):
+    img1 = Image.open(image1)
+    img2 = Image.open(image2)
+
+    if img1.size != img2.size:
+        print("Les images n'ont pas la même taille. Opération annulée.")
+        return
+
+    width, height = img1.size
+
+    img_diff = Image.new("RGB", (width, height))
+
+    pixels1 = img1.load()
+    pixels2 = img2.load()
+    pixels_diff = img_diff.load()
+
+    for y in range(height):
+        for x in range(width):
+            if pixels1[x, y] == pixels2[x, y]:
+                pixels_diff[x, y] = (255, 255, 255)
+            else:
+                pixels_diff[x, y] = (255, 0, 0)
+
+    img_diff.save(image_difference_output)
+
+def afficher_dernier_pixel_rouge(image_difference_output):
+    img = Image.open(image_difference_output).convert("RGB")
+    width, height = img.size
+    pixels = img.load()
+
+    for y in range(height - 1, -1, -1):
+        for x in range(width - 1, -1, -1):
+            if pixels[x, y] == (255, 0, 0):
+                r, g, b = pixels[x, y]
+                print("Valeur du dernier pixel rouge :", r, g, b)
+                return
+            
+    print("Aucun pixel rouge trouvé.")
+
+# image_difference("image2.png", "image_codee.png", "difference.png")
+afficher_dernier_pixel_rouge("difference.png")
