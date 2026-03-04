@@ -83,6 +83,7 @@ def selectionner_image_cacher():
     )
     entry_image_cacher.delete(0, tk.END)
     entry_image_cacher.insert(0, chemin)
+    afficher_infos()
 
 def selectionner_image_extraire():
     chemin = filedialog.askopenfilename(
@@ -128,6 +129,32 @@ def extraire():
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
+def afficher_infos():
+    image_source = entry_image_cacher.get()
+    message = entry_message.get()
+
+    if not image_source:
+        label_infos.config(text="Aucune image sélectionnée.")
+        return
+
+    img = Image.open(image_source)
+    width, height = img.size
+    nb_pixels = width * height
+
+    nb_bits_message = len(message_to_bin(message))  # 8 bits par caractère
+    ratio = nb_bits_message / nb_pixels * 100
+
+    texte = (
+        f"Taille de l'image : {width}x{height} ({nb_pixels} pixels)\n"
+        f"Taille du message : {nb_bits_message} bits\n"
+        f"Ratio : {ratio:.6f}%"
+    )
+
+    if ratio < 0.1:
+        texte += "\n⚠ Ratio très faible : le message sera naturellement camouflé, mais sans la clé, il sera impossible de le retrouver."
+
+    label_infos.config(text=texte)
+
 root = tk.Tk()
 root.title("Stéganographie - Cacher / Extraire")
 
@@ -161,6 +188,9 @@ entry_graine.pack()
 
 label_resultat = tk.Label(frame_extraire, text="")
 label_resultat.pack()
+
+label_infos = tk.Label(frame_cacher, text="", fg="blue")
+label_infos.pack(pady=5)
 
 root.mainloop()
 
