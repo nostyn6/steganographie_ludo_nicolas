@@ -1,6 +1,7 @@
 from PIL import Image
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import random
 
 def message_to_bin(message):
     # Convertit le message en binaire (8 bits par caractère)
@@ -13,13 +14,13 @@ def cacher_message(image_path, message, output_path, graine):
     pixels = img.load()
     width, height = img.size
     
-    idx = 0
+    n = 0
     points = generer_points_aleatoires(width, height, len(binary_msg), graine)
 
-    for idx, (x, y) in enumerate(points):
-        r, g, b = pixels[x, y]
-        nouveau_r = (r & ~1) | int(binary_msg[idx])
-        pixels[x, y] = (nouveau_r, g, b)
+    for n, (i, j) in enumerate(points): # enumerate() sert à parcourir une liste tout en récupérant l’index de chaque élément.
+        r, g, b = pixels[i, j]
+        nouveau_r = (r & ~1) | int(binary_msg[n]) #Arrondie le pixel en nombre paire
+        pixels[i, j] = (nouveau_r, g, b)
     
     img.save(output_path)
     print(f"Message caché dans {output_path}")
@@ -36,14 +37,14 @@ def extraire_message(image_path, graine):
     # On génère TOUTES les positions possibles dans l'ordre déterminé par la graine
     points = generer_points_aleatoires(width, height, width * height, graine)
 
-    for x, y in points:
-        r, g, b = pixels[x, y]
-        bits_extraits += str(r & 1)
+    for i, j in points:
+        r, g, b = pixels[i, j]
+        bits_extraits += str(r & 1) # Récupère le dernier bit
 
         # Dès qu'on trouve le marqueur de fin
-        if bits_extraits.endswith(marqueur_fin):
+        if bits_extraits.endswith(marqueur_fin): # On vérifie si les derniers bits correspondent au marqueur.
 
-            bits_utiles = bits_extraits[:-len(marqueur_fin)]
+            bits_utiles = bits_extraits[:-len(marqueur_fin)] # On retire le marqueur de fin
 
             # Reconstruction du message
             for i in range(0, len(bits_utiles), 8):
@@ -53,8 +54,6 @@ def extraire_message(image_path, graine):
             return message_final
 
     return "Mauvaise graine ou aucun message trouvé."
-
-import random
 
 def generer_points_aleatoires(largeur, hauteur, nb_bits, graine):
     # On initialise le générateur avec la clé (la graine)
@@ -210,12 +209,12 @@ def image_difference(image1, image2, image_difference_output):
     pixels2 = img2.load()
     pixels_diff = img_diff.load()
 
-    for y in range(height):
-        for x in range(width):
-            if pixels1[x, y] == pixels2[x, y]:
-                pixels_diff[x, y] = (255, 255, 255)
+    for i in range(height):
+        for j in range(width):
+            if pixels1[j, i] == pixels2[j, i]:
+                pixels_diff[j, i] = (255, 255, 255)
             else:
-                pixels_diff[x, y] = (255, 0, 0)
+                pixels_diff[j, i] = (255, 0, 0)
 
     img_diff.save(image_difference_output)
 
@@ -224,14 +223,13 @@ def afficher_dernier_pixel_rouge(image_difference_output):
     width, height = img.size
     pixels = img.load()
 
-    for y in range(height - 1, -1, -1):
-        for x in range(width - 1, -1, -1):
-            if pixels[x, y] == (255, 0, 0):
-                r, g, b = pixels[x, y]
-                print("Valeur du dernier pixel rouge :", r, g, b)
-                return
-            
-    print("Aucun pixel rouge trouvé.")
+    for i in range(height - 1, -1, -1):
+        for j in range(width - 1, -1, -1):
+            if pixels[j, i] == (255, 0, 0):
+                r, g, b = pixels[j, i]
+                return print("La valeur du dernier pixel rouge est :", r, g, b)
+                
+    print("Aucun pixel rouge n'a été trouvé.")
 
-# image_difference("image2.png", "image_codee.png", "difference.png")
-# afficher_dernier_pixel_rouge("difference.png")
+image_difference("image4.png", "image_codee.png", "difference.png")
+afficher_dernier_pixel_rouge("difference.png")
