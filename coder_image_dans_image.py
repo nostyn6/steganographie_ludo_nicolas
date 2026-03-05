@@ -28,43 +28,38 @@ def int_to_bin16(n): # Pour traduire un entier en binaire de 16 bit
 def bin16_to_int(b): # Pour traduire binaire de 16 bit en un entier
     return int(b, 2)
 
-def cacher_image(image_porteur_path, image_a_cacher_path, output_path, graine):
-    porteur = Image.open(image_porteur_path).convert("RGB")
+def cacher_image(image_path, image_a_cacher_path, output_path, graine):
+    image = Image.open(image_path).convert("RGB")
     cacher = Image.open(image_a_cacher_path).convert("1")  # B/W
-    width_p, height_p = porteur.size
+    width_i, height_i = image.size
     width_c, height_c = cacher.size
-
-    if width_c > 255 or height_c > 255:
-        print("Image cachée trop grande (max 255x255)")
-        return
 
     nb_bits_image = width_c * height_c
     total_bits = 16 + nb_bits_image 
-    if total_bits > width_p * height_p:
-        print("Image porteuse trop petite pour stocker l'image")
-        return
+    if total_bits > width_i * height_i:
+        return print("Image porteuse trop petite pour stocker l'image")
 
-    pixels_p = porteur.load()
+    pixels_p = image.load()
     pixels_c = cacher.load()
 
-    points = generer_points_aleatoires(width_p, height_p, total_bits, graine)
+    points = generer_points_aleatoires(width_i, height_i, total_bits, graine)
 
     taille_bits = int_to_bin16((width_c << 8) + height_c)
-    for idx in range(16):
-        x, y = points[idx]
+    for i in range(16):
+        x, y = points[i]
         r, g, b = pixels_p[x, y]
-        pixels_p[x, y] = ((r & ~1) | int(taille_bits[idx]), g, b)
+        pixels_p[x, y] = ((r & ~1) | int(taille_bits[i]), g, b)
 
-    idx_bit = 16
-    for y in range(height_c):
-        for x in range(width_c):
-            bit = 0 if pixels_c[x, y] == 0 else 1
-            px, py = points[idx_bit]
+    i_bit = 16
+    for i in range(height_c):
+        for j in range(width_c):
+            bit = 0 if pixels_c[j, i] == 0 else 1
+            px, py = points[i_bit]
             r, g, b = pixels_p[px, py]
-            pixels_p[px, py] = ((r & ~1) | bit, g, b)
-            idx_bit += 1
+            pixels_p[px, py] = ((r & ~1) | bit, g, b) #Arrondie le pixel en nombre paire
+            i_bit += 1
 
-    porteur.save(output_path)
+    image.save(output_path)
     print(f"Image cachée dans {output_path}")
 
 def extraire_image(image_codee_path, graine):
@@ -77,10 +72,10 @@ def extraire_image(image_codee_path, graine):
     for i in range(16):
         x, y = points[i]
         r, g, b = pixels_p[x, y]
-        taille_bits += str(r & 1)
+        taille_bits += str(r & 1) # Récupère le dernier bit
 
     taille = bin16_to_int(taille_bits)
-    width_c = (taille >> 8) & 0xFF
+    width_c = (taille >> 8) & 0xFF 
     height_c = taille & 0xFF
 
     cacher = Image.new("1", (width_c, height_c))
