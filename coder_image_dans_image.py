@@ -62,8 +62,8 @@ def cacher_image(image_path, image_a_cacher_path, output_path, graine):
     image.save(output_path)
     print(f"Image cachée dans {output_path}")
 
-def extraire_image(image_codee_path, graine):
-    img = Image.open(image_codee_path).convert("RGB")
+def extraire_image(image_code_path, graine):
+    img = Image.open(image_code_path).convert("RGB")
     width_p, height_p = img.size
     pixels_p = img.load()
 
@@ -126,32 +126,32 @@ def cacher_action():
     if not porteur or not cacher_img or not graine:
         messagebox.showerror("Erreur", "Veuillez remplir tous les champs")
         return
-    cacher_image(porteur, cacher_img, "image_codee.png", graine)
+    cacher_image(porteur, cacher_img, "image_code.png", graine)
 tk.Button(frame_cacher, text="Cacher l'image", command=cacher_action).pack(pady=10)
 
 frame_extraire = tk.LabelFrame(root, text="Extraire l'image", padx=10, pady=10)
 frame_extraire.pack(padx=10, pady=10, fill="x")
 
 tk.Label(frame_extraire, text="Image codée :").pack()
-entry_codee = tk.Entry(frame_extraire, width=50)
-entry_codee.pack()
-def selectionner_codee():
+entry_code = tk.Entry(frame_extraire, width=50)
+entry_code.pack()
+def selectionner_code():
     chemin = filedialog.askopenfilename(title="Sélectionner image codée", filetypes=[("Images PNG", "*.png")])
-    entry_codee.delete(0, tk.END)
-    entry_codee.insert(0, chemin)
-tk.Button(frame_extraire, text="Parcourir", command=selectionner_codee).pack(pady=5)
+    entry_code.delete(0, tk.END)
+    entry_code.insert(0, chemin)
+tk.Button(frame_extraire, text="Parcourir", command=selectionner_code).pack(pady=5)
 
 tk.Label(frame_extraire, text="Graine (mot de passe) :").pack()
 entry_graine_extraire = tk.Entry(frame_extraire, width=50)
 entry_graine_extraire.pack()
 
 def extraire_action():
-    codee = entry_codee.get()
+    code = entry_code.get()
     graine = entry_graine_extraire.get()
-    if not codee or not graine:
+    if not code or not graine:
         messagebox.showerror("Erreur", "Veuillez remplir tous les champs")
         return
-    image_extrait = extraire_image(codee, graine)
+    image_extrait = extraire_image(code, graine)
     image_extrait.show()
 tk.Button(frame_extraire, text="Extraire l'image", command=extraire_action).pack(pady=10)
 

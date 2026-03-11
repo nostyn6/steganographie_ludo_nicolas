@@ -101,7 +101,7 @@ def cacher():
         messagebox.showerror("Erreur", "Image, message ou graine manquant")
         return
 
-    image_sortie = "image_codee.png"
+    image_sortie = "image_code.png"
 
     try:
         cacher_message(image_source, message, image_sortie, graine)
@@ -231,5 +231,5 @@ def afficher_dernier_pixel_rouge(image_difference_output):
                 
     print("Aucun pixel rouge n'a été trouvé.")
 
-image_difference("image4.png", "image_codee.png", "difference.png")
-afficher_dernier_pixel_rouge("difference.png")
+# image_difference("image1.png", "image_code.png", "difference.png")
+# afficher_dernier_pixel_rouge("difference.png")
